@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# This script will use the correct repo to install packages for clusterhq-flocker-node
+# This script will use the correct repo to install 
+# packages for clusterhq-flocker-node
 
 import sys
 
@@ -11,16 +12,19 @@ if __name__ == "__main__":
     c = Configurator(configFile=sys.argv[1])
     for node in c.config["agent_nodes"]:
         if c.config["os"] == "ubuntu":
-            c.runSSH(node, """apt-get -y install apt-transport-https software-properties-common
+            c.runSSH(node, """
+apt-get -y install apt-transport-https software-properties-common
 add-apt-repository -y ppa:james-page/docker
-add-apt-repository -y 'deb https://clusterhq-archive.s3.amazonaws.com/ubuntu-testing/14.04/$(ARCH) /'
+add-apt-repository -y 'deb https://clusterhq-archive.s3.amazonaws.com/ubuntu-testing/14.04/$(ARCH) /' # noqa
 apt-get update
 apt-get -y --force-yes install clusterhq-flocker-node
 """)
         elif c.config["os"] == "centos":
             c.runSSH(node, """if selinuxenabled; then setenforce 0; fi
-test -e /etc/selinux/config && sed --in-place='.preflocker' 's/^SELINUX=.*$/SELINUX=disabled/g' /etc/selinux/config
-yum install -y https://s3.amazonaws.com/clusterhq-archive/centos/clusterhq-release$(rpm -E %dist).noarch.rpm
+test -e /etc/selinux/config && \
+sed --in-place='.preflocker' \
+'s/^SELINUX=.*$/SELINUX=disabled/g' /etc/selinux/config
+yum install -y https://s3.amazonaws.com/clusterhq-archive/centos/clusterhq-release$(rpm -E %dist).noarch.rpm # noqa
 yum install -y clusterhq-flocker-node
 """)
 
@@ -29,7 +33,8 @@ yum install -y clusterhq-flocker-node
         # CentOS ZFS installation requires a restart
         # XXX todo - find out a way to handle a restart mid-script
         if c.config["os"] == "centos":
-            print "Auto-install of ZFS on centos not currently supported - restart required"
+            print """Auto-install of ZFS on centos not currently supported - 
+            restart required"""
 
         for node in c.config["agent_nodes"]:
             if c.config["os"] == "ubuntu":
