@@ -24,7 +24,10 @@ yum install -y https://s3.amazonaws.com/clusterhq-archive/centos/clusterhq-relea
 yum install -y clusterhq-flocker-node
 """)
 
+    # if the dataset.backend is ZFS then install ZFS and mount a flocker pool
     if c.config["agent_config"]["dataset"]["backend"] == "zfs":
+        # CentOS ZFS installation requires a restart
+        # XXX todo - find out a way to handle a restart mid-script
         if c.config["os"] == "centos":
             print "Auto-install of ZFS on centos not currently supported - restart required"
 
