@@ -30,13 +30,13 @@ yum install -y clusterhq-flocker-node
 
         for node in c.config["agent_nodes"]:
             if c.config["os"] == "ubuntu":
-                c.runSSH(node, """add-apt-repository -y ppa:zfs-native/stable
+                c.runSSH(node, """echo installing-zfs
+add-apt-repository -y ppa:zfs-native/stable
 apt-get update
-apt-get -y install libc6-dev
-apt-get -y install zfsutils
+apt-get -y --force-yes install libc6-dev zfsutils
 mkdir -p /var/opt/flocker
-truncate --size 10G /var/opt/flocker/pool-vdev
-zpool create flocker /var/opt/flocker/pool-vdev
+truncate --size 10G /var/opt/flocker/pool-vdev || true
+zpool create flocker /var/opt/flocker/pool-vdev || true
 """)
 
     print "Installed clusterhq-flocker-node on all nodes"
