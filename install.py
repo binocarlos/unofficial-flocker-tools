@@ -45,8 +45,8 @@ add-apt-repository -y ppa:zfs-native/stable
 apt-get update
 apt-get -y --force-yes install libc6-dev zfsutils
 mkdir -p /var/opt/flocker
-truncate --size 10G /var/opt/flocker/pool-vdev || true
-zpool create flocker /var/opt/flocker/pool-vdev || true
+truncate --size 10G /var/opt/flocker/pool-vdev
+zpool create flocker /var/opt/flocker/pool-vdev
 """)
 
     print "Installed clusterhq-flocker-node on all nodes"
