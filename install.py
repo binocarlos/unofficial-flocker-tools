@@ -24,19 +24,22 @@ yum install -y https://s3.amazonaws.com/clusterhq-archive/centos/clusterhq-relea
 yum install -y clusterhq-flocker-node
 """)
 
+    # check the dataset.backend and install ZFS on Ubuntu
     if c.config["agent_config"]["dataset"]["backend"] == "zfs":
+        # CentOS ZFS installation requires a restart
+        # XXX todo - find out a way to handle a restart mid-script
         if c.config["os"] == "centos":
             print "Auto-install of ZFS on centos not currently supported - restart required"
 
         for node in c.config["agent_nodes"]:
             if c.config["os"] == "ubuntu":
-                c.runSSH(node, """add-apt-repository -y ppa:zfs-native/stable
+                c.runSSH(node, """echo installing-zfs
+add-apt-repository -y ppa:zfs-native/stable
 apt-get update
-apt-get -y install libc6-dev
-apt-get -y install zfsutils
+apt-get -y --force-yes install libc6-dev zfsutils
 mkdir -p /var/opt/flocker
-truncate --size 10G /var/opt/flocker/pool-vdev
-zpool create flocker /var/opt/flocker/pool-vdev
+truncate --size 10G /var/opt/flocker/pool-vdev || true
+zpool create flocker /var/opt/flocker/pool-vdev || true
 """)
 
     print "Installed clusterhq-flocker-node on all nodes"
