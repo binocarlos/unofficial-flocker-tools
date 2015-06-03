@@ -34,8 +34,9 @@ yum install -y clusterhq-flocker-node
         # CentOS ZFS installation requires a restart
         # XXX todo - find out a way to handle a restart mid-script
         if c.config["os"] == "centos":
-            print >> sys.stderr, """Auto-install of ZFS on centos is
-            not currently supported"""
+            print >> sys.stderr, (
+                "Auto-install of ZFS on centos is "
+                "not currently supported")
             sys.exit(1)
 
         for node in c.config["agent_nodes"]:
