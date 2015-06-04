@@ -15,7 +15,6 @@ if __name__ == "__main__":
         if c.config["os"] == "ubuntu":
             c.runSSH(public_ip, """# install flocker
 apt-get -y install apt-transport-https software-properties-common
->>>>>>> origin/install-zfs
 add-apt-repository -y ppa:james-page/docker
 add-apt-repository -y 'deb https://clusterhq-archive.s3.amazonaws.com/ubuntu-testing/14.04/$(ARCH) /' # noqa
 apt-get update
