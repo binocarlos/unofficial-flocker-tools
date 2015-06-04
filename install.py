@@ -13,7 +13,7 @@ if __name__ == "__main__":
     for node in c.config["agent_nodes"]:
         public_ip = node["public"]
         if c.config["os"] == "ubuntu":
-            c.runSSH(node, """# install flocker
+            c.runSSH(public_ip, """# install flocker
 apt-get -y install apt-transport-https software-properties-common
 >>>>>>> origin/install-zfs
 add-apt-repository -y ppa:james-page/docker
@@ -22,7 +22,7 @@ apt-get update
 apt-get -y --force-yes install clusterhq-flocker-node
 """)
         elif c.config["os"] == "centos":
-            c.runSSH(node, """# install flocker
+            c.runSSH(public_ip, """# install flocker
 if selinuxenabled; then setenforce 0; fi
 test -e /etc/selinux/config && \
 sed --in-place='.preflocker' \
@@ -42,8 +42,9 @@ yum install -y clusterhq-flocker-node
             sys.exit(1)
 
         for node in c.config["agent_nodes"]:
+            public_ip = node["public"]
             if c.config["os"] == "ubuntu":
-                c.runSSH(node, """echo installing-zfs
+                c.runSSH(public_ip, """echo installing-zfs
 add-apt-repository -y ppa:zfs-native/stable
 apt-get update
 apt-get -y --force-yes install libc6-dev zfsutils
