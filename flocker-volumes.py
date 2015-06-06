@@ -236,8 +236,16 @@ class Destroy(Options):
     mark a dataset to be deleted
     """
     synopsis = '<dataset_uuid>'
+    def parseArgs(self, dataset_uuid):
+        self['dataset_uuid'] = dataset_uuid
     def run(self):
-        pass
+        self.client = get_client(self.parent)
+        self.base_url = get_base_url(self.parent)
+        d = self.client.delete(self.base_url + "/configuration/datasets/%s" %
+            (self['dataset_uuid'],))
+        d.addCallback(treq.json_content)
+        d.addCallback(print_json)
+        return d
 
 
 class Move(Options):
