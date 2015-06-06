@@ -20,6 +20,7 @@ import yaml
 import treq
 import texttable
 import json
+import pprint
 
 # print nicely formatted json as a result of an API request
 def print_json(data):
@@ -199,6 +200,8 @@ class List(Options):
 
 
 def parse_num(num, unit):
+    if unit is None:
+        unit = ""
     unit = unit.lower()
     if unit == 'tb' or unit == 't' or unit =='tib':
         return int(float(num)*1024*1024*1024*1024)
@@ -216,18 +219,39 @@ class Create(Options):
     """
     create a flocker dataset
     """
-    optFlags = [
-        ("host", "h", "Initial host for dataset to appear on"),
-        ("metadata", "m", "Set volume metadata"),
-        ("size", "s", "Size", "Set size in bytes (default), k, M, G, T"),
+    optParameters = [
+        ("host", "h", None, "Initial host for dataset to appear on"),
+        ("metadata", "m", None,
+            "Set volume metadata JSON string"),
+        ("name", "n", None, "Set the volume name"),
+        ("unit", "u", None, "Set size in k, M, G, T or bytes (default)"),
+        ("size", "s", 107374182400, "The size of the volume in units", int),
     ]
+    def postOptions(self):
+        if self["host"] is None:
+            raise UsageError, "--host is required"
     def run(self):
         # TODO search the list of nodes for one prefix
         self.client = get_client(self.parent)
         self.base_url = get_base_url(self.parent)
-        d = self.client.post(self.base_url + "/configuration/datasets",
-                {"maximum_size": parse_num(self["size"])})
+
+        # gather the properties for the JSON body
+        metadata = {}
+        if self["metadata"]:
+            metadata = json.loads(self["metadata"])
+        if self["name"] is not None:
+            metadata["name"] = self["name"]
+        size = parse_num(self["size"], self["unit"])
+
+        d = self.client.post(
+            self.base_url + "/configuration/datasets",
+            json.dumps({"metadata":metadata,
+                "maximum_size":size,
+                "primary":self["host"]
+            }),
+            headers={'Content-Type': ['application/json']})
         d.addCallback(treq.json_content)
+        d.addCallback(print_json)
         return d
 
 
