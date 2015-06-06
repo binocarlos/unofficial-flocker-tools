@@ -19,6 +19,16 @@ import sys
 import yaml
 import treq
 import texttable
+import json
+
+# print nicely formatted json as a result of an API request
+def print_json(data):
+    print json.dumps(
+        data, 
+        sort_keys=True,
+        indent=4,
+        separators=(',', ': ')
+    )
 
 def get_client(options):
     cluster = FilePath(options["cluster-yml"])
