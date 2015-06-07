@@ -67,7 +67,32 @@ def get_table():
     return table
 
 
-class Version(Options):
+class FlockerVolumesBaseCommands(Options):
+    """
+    A class that each of the other Options classes inherit from
+    so that the optParameters are merged
+
+    The main Options class with subcommands also inherits from
+    this base class
+    """
+    optParameters = [
+        ("cluster-yml", None, "./cluster.yml",
+            "Location of cluster.yml file "
+            "(makes other options unnecessary)"),
+        ("certs-path", None, ".",
+            "Path to certificates folder"),
+        ("user", None, "user",
+            "Name of user for which .key and .crt files exist"),
+        ("cluster-crt", None, "cluster.crt",
+            "Name of cluster cert file"),
+        ("control-service", None, None,
+            "Hostname or IP of control service"),
+        ("control-port", None, 4523,
+            "Port for control service REST API"),
+    ]
+
+
+class Version(FlockerVolumesBaseCommands):
     """
     show version information
     """
@@ -77,7 +102,7 @@ class Version(Options):
         print
 
 
-class ListNodes(Options):
+class ListNodes(FlockerVolumesBaseCommands):
     """
     show list of nodes in the cluster
     """
@@ -85,8 +110,8 @@ class ListNodes(Options):
         ("long", "l", "Show long UUIDs"),
     ]
     def run(self):
-        self.client = get_client(self.parent)
-        self.base_url = get_base_url(self.parent)
+        self.client = get_client(self)
+        self.base_url = get_base_url(self)
         uuid_length = get_uuid_length(self["long"])
         d = self.client.get(self.base_url + "/state/nodes")
         d.addCallback(treq.json_content)
@@ -134,7 +159,7 @@ def get_state_check_if_really_empty(client, base_url):
     return d
 
 
-class List(Options):
+class List(FlockerVolumesBaseCommands):
     """
     list flocker datasets
     """
@@ -144,8 +169,8 @@ class List(Options):
         ("human", "h", "Human readable numbers"),
     ]
     def run(self):
-        self.client = get_client(self.parent)
-        self.base_url = get_base_url(self.parent)
+        self.client = get_client(self)
+        self.base_url = get_base_url(self)
         uuid_length = get_uuid_length(self["long"])
 
         d1 = self.client.get(self.base_url + "/configuration/datasets")
@@ -248,7 +273,7 @@ def parse_num(expression):
         return int(float(num))
 
 
-class Create(Options):
+class Create(FlockerVolumesBaseCommands):
     """
     create a flocker dataset
     """
@@ -265,8 +290,8 @@ class Create(Options):
     def run(self):
         if not self.get("node"):
             raise UsageError("must specify --node")
-        self.client = get_client(self.parent)
-        self.base_url = get_base_url(self.parent)
+        self.client = get_client(self)
+        self.base_url = get_base_url(self)
 
         d = self.client.get(self.base_url + "/state/nodes")
         d.addCallback(treq.json_content)
@@ -315,7 +340,7 @@ class Create(Options):
         return d
 
 
-class Destroy(Options):
+class Destroy(FlockerVolumesBaseCommands):
     """
     mark a dataset to be deleted
     """
@@ -326,8 +351,8 @@ class Destroy(Options):
         if not self.get("dataset"):
             raise UsageError("must specify --dataset")
 
-        self.client = get_client(self.parent)
-        self.base_url = get_base_url(self.parent)
+        self.client = get_client(self)
+        self.base_url = get_base_url(self)
         d = self.client.get(self.base_url + "/configuration/datasets")
         d.addCallback(treq.json_content)
         def got_configuration(datasets):
@@ -374,7 +399,7 @@ def filter_datasets(prefix, datasets):
     return candidates[0]["dataset_id"].encode("ascii")
 
 
-class Move(Options):
+class Move(FlockerVolumesBaseCommands):
     """
     move a dataset from one node to another
     """
@@ -388,8 +413,8 @@ class Move(Options):
             raise UsageError("must specify --dataset")
         if not self.get("destination"):
             raise UsageError("must specify --destination")
-        self.client = get_client(self.parent)
-        self.base_url = get_base_url(self.parent)
+        self.client = get_client(self)
+        self.base_url = get_base_url(self)
 
         d1 = self.client.get(self.base_url + "/state/nodes")
         d1.addCallback(treq.json_content)
@@ -427,22 +452,13 @@ commands = {
 }
 
 
-class FlockerVolumesCommands(Options):
-    optParameters = [
-        ("cluster-yml", None, "./cluster.yml",
-            "Location of cluster.yml file "
-            "(makes other options unnecessary)"),
-        ("certs-path", None, ".",
-            "Path to certificates folder"),
-        ("user", None, "user",
-            "Name of user for which .key and .crt files exist"),
-        ("cluster-crt", None, "cluster.crt",
-            "Name of cluster cert file"),
-        ("control-service", None, None,
-            "Hostname or IP of control service"),
-        ("control-port", None, 4523,
-            "Port for control service REST API"),
-    ]
+class FlockerVolumesCommands(FlockerVolumesBaseCommands):
+    """
+    The main options parser whose only job is to handle
+    subcommands.  The optParameters are inherited from
+    the FlockerVolumesBaseCommands class and are merged
+    into each subCommands optParameters
+    """
     subCommands = [
         (cmd, None, cls, cls.__doc__)
         for cmd, cls
